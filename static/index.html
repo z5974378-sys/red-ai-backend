@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Red AI 选题库</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="workspace-panel" aria-label="输入区">
+        <div class="brand-row">
+          <div>
+            <p class="eyebrow">Red AI</p>
+            <h1>小红书选题库</h1>
+          </div>
+          <span class="status-pill" id="saveStatus">已保存</span>
+        </div>
+
+        <section class="import-panel">
+          <div>
+            <p class="eyebrow">Import</p>
+            <h3>参考素材导入</h3>
+          </div>
+
+          <label for="noteContent">参考笔记内容 / 评论 / 截图文字</label>
+          <textarea id="noteContent" placeholder="把笔记正文、标题、评论区、截图里的文字粘贴进来。系统会自动拆出热门标题、评论痛点和竞品线索。"></textarea>
+
+          <button class="ghost-button full-button" id="analyzeBtn" type="button">分析并填充左侧资料</button>
+        </section>
+
+        <section class="input-section">
+          <label for="positioning">账号定位</label>
+          <textarea id="positioning" placeholder="例：面向一线城市新手宝妈，做儿童绘本和亲子阅读方法，目标是建立专业但不焦虑的陪伴型账号。"></textarea>
+        </section>
+
+        <section class="input-section">
+          <label for="audience">目标用户</label>
+          <textarea id="audience" placeholder="例：25-38岁妈妈，预算中等，怕买错、怕孩子不爱看、怕方法太复杂，喜欢可直接照做的清单。"></textarea>
+        </section>
+
+        <section class="input-section">
+          <label for="savedTitles">收藏标题</label>
+          <textarea id="savedTitles" placeholder="一行一个标题。例：&#10;后悔没早点知道的绘本挑选法&#10;3岁孩子不爱读书，我做对了这5件事"></textarea>
+        </section>
+
+        <section class="input-section">
+          <label for="comments">评论区问题</label>
+          <textarea id="comments" placeholder="一行一个真实问题。例：&#10;孩子只撕书怎么办？&#10;英文绘本要不要跟读？&#10;预算有限先买哪套？"></textarea>
+        </section>
+
+        <section class="input-section">
+          <label for="competitors">竞品摘要</label>
+          <textarea id="competitors" placeholder="例：竞品A爆款多是避坑清单，评论里很多人在问年龄段；竞品B强在案例，但标题偏泛，转化弱。"></textarea>
+        </section>
+
+        <section class="settings-grid">
+          <label>
+            输出数量
+            <input id="topicCount" type="number" min="6" max="30" value="12" />
+          </label>
+          <label>
+            行业风险
+            <select id="riskLevel">
+              <option value="normal">普通</option>
+              <option value="strict">严格</option>
+              <option value="sensitive">敏感行业</option>
+            </select>
+          </label>
+          <label>
+            标题风格
+            <select id="titleStyle">
+              <option value="bold">吸睛夸张</option>
+              <option value="qa">问答讨论</option>
+              <option value="useful">干货宝藏</option>
+            </select>
+          </label>
+        </section>
+
+        <div class="action-row">
+          <button class="primary-button" id="generateBtn" type="button">生成选题库</button>
+          <button class="ghost-button" id="clearBtn" type="button">清空</button>
+        </div>
+      </aside>
+
+      <section class="output-panel" aria-label="选题库">
+        <div class="toolbar">
+          <div>
+            <p class="eyebrow">Topic Bank</p>
+            <h2>可执行选题</h2>
+          </div>
+          <div class="toolbar-actions">
+            <select id="priorityFilter" aria-label="优先级筛选">
+              <option value="all">全部优先级</option>
+              <option value="高">高优先级</option>
+              <option value="中">中优先级</option>
+              <option value="低">低优先级</option>
+            </select>
+            <button class="ghost-button" id="copyBtn" type="button">复制表格</button>
+            <button class="ghost-button" id="exportBtn" type="button">导出 CSV</button>
+          </div>
+        </div>
+
+        <div class="summary-strip">
+          <div>
+            <span id="totalCount">0</span>
+            <p>选题</p>
+          </div>
+          <div>
+            <span id="seriesCount">0</span>
+            <p>可做系列</p>
+          </div>
+          <div>
+            <span id="humanCount">0</span>
+            <p>需人工判断</p>
+          </div>
+        </div>
+
+        <div class="empty-state" id="emptyState">
+          <h3>把账号资料贴到左侧，生成第一版选题库</h3>
+          <p>系统会优先把评论区问题变成选题，再结合收藏标题提炼标题角度，避免只产出空泛方向。</p>
+        </div>
+
+        <div class="topic-table-wrap" id="tableWrap" hidden>
+          <table class="topic-table">
+            <thead>
+              <tr>
+                <th>选题</th>
+                <th>用户痛点</th>
+                <th>标题角度</th>
+                <th>首图方案</th>
+                <th>正文脚本</th>
+                <th>优先级</th>
+                <th>风险提醒</th>
+              </tr>
+            </thead>
+            <tbody id="topicBody"></tbody>
+          </table>
+        </div>
+
+        <section class="editor-panel" id="editorPanel" hidden>
+          <div class="editor-head">
+            <div>
+              <p class="eyebrow">Editor</p>
+              <h3 id="editorTitle">选题文案编辑</h3>
+            </div>
+            <div class="toolbar-actions">
+              <button class="ghost-button rewrite-btn" data-tone="spoken" type="button">口语</button>
+              <button class="ghost-button rewrite-btn" data-tone="hook" type="button">吸睛</button>
+              <button class="ghost-button rewrite-btn" data-tone="pro" type="button">专业</button>
+              <button class="primary-button small-primary" id="saveEditBtn" type="button">保存修改</button>
+            </div>
+          </div>
+          <div class="editor-grid">
+            <label>
+              首图完整文案
+              <textarea id="coverEditor"></textarea>
+            </label>
+            <label>
+              正文逐段脚本
+              <textarea id="scriptEditor"></textarea>
+            </label>
+          </div>
+        </section>
+
+        <section class="check-panel">
+          <div class="editor-head">
+            <div>
+              <p class="eyebrow">Compliance</p>
+              <h3>敏感违规词自查</h3>
+            </div>
+            <button class="ghost-button" id="localCheckBtn" type="button">本地自查</button>
+          </div>
+          <textarea id="checkText" placeholder="粘贴要发布的标题、首图和正文，先做本地敏感词提示，再到下方网站复查。"></textarea>
+          <div class="risk-result" id="riskResult">等待检测</div>
+        </section>
+      </section>
+    </main>
+
+    <template id="topicRowTemplate">
+      <tr>
+        <td data-label="选题"></td>
+        <td data-label="用户痛点"></td>
+        <td data-label="标题角度"></td>
+        <td data-label="首图方案"></td>
+        <td data-label="正文脚本"></td>
+        <td data-label="优先级"></td>
+        <td data-label="风险提醒"></td>
+      </tr>
+    </template>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
