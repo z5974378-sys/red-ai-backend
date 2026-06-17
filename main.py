@@ -1,14 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 
 from config import settings, BASE_DIR
 from routers import analyze, generate, rewrite, compliance, sessions
 
 app = FastAPI(title="Red AI Backend")
 
-origins = [o.strip() for o in settings.cors_origins.split(",")]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -33,4 +32,9 @@ def index():
     return FileResponse(BASE_DIR / "static" / "index.html")
 
 
-app.mount("/", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
+@app.get("/{filename}")
+def static_files(filename: str):
+    path = BASE_DIR / "static" / filename
+    if path.exists():
+        return FileResponse(path)
+    return FileResponse(BASE_DIR / "static" / "index.html")
